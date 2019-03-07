@@ -7,9 +7,10 @@ _rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ['KIVY_NO_FILELOG'] = '1'
 #os.environ['KIVY_NO_CONSOLELOG'] = '1'
 os.environ['KIVY_NO_ARGS'] = '1'
+os.environ['KIVY_GL_BACKEND'] = 'gl'
 KIVY_CONFIG = os.path.join(_rootDir, 'etc', 'kivy.ini')
 if os.path.isfile(KIVY_CONFIG):
-    os.environ['KIVY_USE_DEFAULTCONFIG'] = '1'
+#    os.environ['KIVY_USE_DEFAULTCONFIG'] = '1'
     from kivy.config import Config
     Config.read(KIVY_CONFIG)
 import kivy

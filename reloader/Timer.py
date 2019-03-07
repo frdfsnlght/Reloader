@@ -25,7 +25,7 @@ KV = '''
         font_size: self.height * 0.9
         halign: 'right'
         max_lines: 1
-        padding_y: self.height * 0.15
+#        padding_y: self.height * 0.15
     GridLayout:
         size_hint_x: None
         width: self.parent.height / 2
