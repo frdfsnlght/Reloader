@@ -32,8 +32,8 @@ KV = '''
             orientation: 'horizontal'
             Label:
             ImageButton:
-                image_normal: 'alert.png'
-                image_down: 'alert.png'
+                image_normal: 'mute_normal.png'
+                image_down: 'mute_down.png'
                 size_hint: None, None
                 width: '150sp'
                 height: '150sp'
