@@ -19,16 +19,17 @@ KV = '''
     
     orientation: 'horizontal'
     spacing: self.height * 0.06
-    Label:
+    ButtonLabel:
         text: self.parent.timeStr
         text_size: self.size
         font_size: self.height * 0.9
         halign: 'right'
         max_lines: 1
 #        padding_y: self.height * 0.15
+        on_long_press: self.parent.on_time_long_press()
     GridLayout:
         size_hint_x: None
-        width: self.parent.height / 2
+        width: self.parent.height
         cols: 1
         MultiImageButton:
             images_normal: 'play_normal.png', 'pause_normal.png'
@@ -36,10 +37,6 @@ KV = '''
             image_set: self.parent.parent.playPauseImage
             on_press: self.parent.parent.on_press_playPause()
             on_release: self.parent.parent.on_release_playPause()
-        ImageButton:
-            image_normal: 'reset_normal.png'
-            image_down: 'reset_down.png'
-            on_press: self.parent.parent.on_press_reset()
 '''
 
         
@@ -72,7 +69,7 @@ class Timer(BoxLayout):
     def on_release_playPause(self):
         self.update()
     
-    def on_press_reset(self):
+    def on_time_long_press(self):
         if self.time == 0: return
         if not self.resetConfirmDialog:
             self.resetConfirmDialog = ConfirmDialog()
@@ -87,7 +84,6 @@ class Timer(BoxLayout):
             self.update()
             bus.emit('timer/time', self.time)
     
-    #@bus.on('outputCounter/count')
     def on_outputCounter_count(self, count, manual):
         if not manual and not self.running:
             self.running = True

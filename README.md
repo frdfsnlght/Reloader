@@ -3,12 +3,7 @@ Python application for a Raspberry Pi computer for my reloading press.
 
 ## TODO
 
-* Save motor speeds
-* Align GUI
-* Alert popup
-* Camera
 * Save/load sessions?
-* Long presses on plus/minus?
 
 ## Credits
 

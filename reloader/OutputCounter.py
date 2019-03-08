@@ -23,29 +23,30 @@ KV = '''
     BoxLayout:
         orientation: 'horizontal'
         spacing: self.height * 0.06
-        Label:
+        ButtonLabel:
             text: self.parent.parent.countStr
             text_size: self.size
             font_size: self.height * 0.9
             halign: 'right'
             max_lines: 1
 #            padding_y: self.height * 0.15
+            on_long_press: self.parent.parent.on_count_long_press()
         GridLayout:
             cols: 2
             size_hint_x: None
             width: self.parent.height
+            Label:
             ImageButton:
                 image_normal: 'plus_normal.png'
                 image_down: 'plus_down.png'
                 on_press: self.parent.parent.parent.on_press_plus()
-            ImageButton:
-                image_normal: 'reset_normal.png'
-                image_down: 'reset_down.png'
-                on_press: self.parent.parent.parent.on_press_reset()
+                on_long_press: self.parent.parent.parent.on_long_press_plus(*args)
+            Label:
             ImageButton:
                 image_normal: 'minus_normal.png'
                 image_down: 'minus_down.png'
                 on_press: self.parent.parent.parent.on_press_minus()
+                on_long_press: self.parent.parent.parent.on_long_press_minus(*args)
 '''
 
         
@@ -79,16 +80,26 @@ class OutputCounter(RelativeLayout):
         self.cb = pi.callback(port, pigpio.FALLING_EDGE, cb)
 
     def on_press_plus(self):
-        self.count = min(self.count + 1, self.MaxCount)
-        self.update()
-        bus.emit('outputCounter/count', self.count, True)
+        self.change_count(1)
+
+    def on_long_press_plus(self, inst, count):
+        delta = 1 if count < 10 else 10 if count < 20 else 100
+        self.change_count(delta)
     
     def on_press_minus(self):
-        self.count = max(self.count - 1, 0)
+        self.change_count(-1)
+        
+    def on_long_press_minus(self, inst, count):
+        delta = -1 if count < 10 else -10 if count < 20 else -100
+        self.change_count(delta)
+
+    def change_count(self, delta):
+        self.count = min(max(self.count + delta, 0), self.MaxCount)
         self.update()
         bus.emit('outputCounter/count', self.count, True)
     
-    def on_press_reset(self):
+    def on_count_long_press(self):
+#    def on_press_reset(self):
         if self.count == 0: return
         if not self.resetConfirmDialog:
             self.resetConfirmDialog = ConfirmDialog()

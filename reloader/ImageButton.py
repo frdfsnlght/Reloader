@@ -1,12 +1,15 @@
 
 from kivy.lang.builder import Builder
+from kivy.properties import NumericProperty
 from kivy.uix.button import Button
+from kivy.clock import Clock
 
 
 KV = '''
 <ImageButton>:
     image_normal: ''
     image_down: ''
+    
     background_color: 0, 0, 0, 0
     padding: self.width * 0.05, self.height * 0.05
     Image:
@@ -27,8 +30,31 @@ KV = '''
 
 class ImageButton(Button):
 
+    long_press_delay = NumericProperty(1)
+    long_press_interval = NumericProperty(0.2)
+    
     def __init__(self, **kwargs):
         Builder.load_string(KV)
         super().__init__(**kwargs)
-
+        self.register_event_type('on_long_press')
+        self.longPressTimer = Clock.create_trigger(self._on_long_press, self.long_press_delay)
+        self.longPressCount = 0
         
+    def on_press(self):
+        self.longPressCount = 0
+        self.longPressTimer.timeout = self.long_press_delay
+        self.longPressTimer()
+        
+    def on_release(self):
+        self.longPressTimer.cancel()
+        
+    def on_long_press(self, count):
+        pass
+        
+    def _on_long_press(self, dt):
+        self.longPressCount = self.longPressCount + 1
+        self.dispatch('on_long_press', self.longPressCount)
+        if self.long_press_interval > 0:
+            self.longPressTimer.timeout = self.long_press_interval
+            self.longPressTimer()
+    
