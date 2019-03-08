@@ -16,6 +16,8 @@ from reloader.ConfirmDialog import ConfirmDialog
 KV = '''
 <OutputCounter>:
     countStr: ''
+    playPauseImage: 0
+    sensorImage: 0
     
     BackgroundLabel:
         text: 'Output'
@@ -35,13 +37,20 @@ KV = '''
             cols: 2
             size_hint_x: None
             width: self.parent.height
-            Label:
+            MultiImageButton:
+                images_normal: 'play_normal.png', 'pause_normal.png'
+                images_down: 'play_down.png', 'pause_down.png'
+                image_set: self.parent.parent.parent.playPauseImage
+                on_press: self.parent.parent.parent.on_press_playPause()
+                on_release: self.parent.parent.parent.on_release_playPause()
             ImageButton:
                 image_normal: 'plus_normal.png'
                 image_down: 'plus_down.png'
                 on_press: self.parent.parent.parent.on_press_plus()
                 on_long_press: self.parent.parent.parent.on_long_press_plus(*args)
-            Label:
+            MultiImage:
+                images: 'empty.png', 'flash.png'
+                image_idx: self.parent.parent.parent.sensorImage
             ImageButton:
                 image_normal: 'minus_normal.png'
                 image_down: 'minus_down.png'
@@ -60,6 +69,8 @@ class OutputCounter(RelativeLayout):
         super().__init__(**kwargs)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.count = 0
+        self.running = True
+        self.sensorTriggered = False
         self.resetConfirmDialog = None
         self.update()
         self.startGPIO()
@@ -70,15 +81,23 @@ class OutputCounter(RelativeLayout):
         port = config.getint('core', 'outputCounterPort')
         
         def cb(port, level, tick):
-            self.count = (self.count + 1) % self.MaxCount
+            self.sensorTriggered = level == 1
+            if level == 0 and self.running == True:
+                self.count = (self.count + 1) % self.MaxCount
+                bus.emit('outputCounter/count', self.count, False)
             self.update()
-            bus.emit('outputCounter/count', self.count, False)
             
         pi.set_mode(port, pigpio.INPUT)
         pi.set_pull_up_down(port, pigpio.PUD_UP)
         pi.set_glitch_filter(port, self.PortDebounce)
-        self.cb = pi.callback(port, pigpio.FALLING_EDGE, cb)
+        self.cb = pi.callback(port, pigpio.EITHER_EDGE, cb)
 
+    def on_press_playPause(self):
+        self.running = not self.running
+            
+    def on_release_playPause(self):
+        self.update()
+        
     def on_press_plus(self):
         self.change_count(1)
 
@@ -115,5 +134,7 @@ class OutputCounter(RelativeLayout):
     
     @mainthread
     def update(self):
+        self.playPauseImage = 1 if self.running else 0
+        self.sensorImage = 1 if self.sensorTriggered else 0
         self.countStr = str(self.count)
         

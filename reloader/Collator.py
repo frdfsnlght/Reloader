@@ -48,7 +48,6 @@ KV = '''
                 images_normal: 'play_normal.png', 'pause_normal.png'
                 images_down: 'play_down.png', 'pause_down.png'
                 image_set: self.parent.parent.parent.playPauseImage
-                padding: self.width * 0.05, self.height * 0.05
                 on_press: self.parent.parent.parent.on_press_playPause()
                 on_release: self.parent.parent.parent.on_release_playPause()
                 on_long_press: self.parent.parent.parent.on_long_press_playPause()
