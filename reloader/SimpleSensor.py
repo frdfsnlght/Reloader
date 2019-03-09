@@ -35,12 +35,13 @@ class SimpleSensor(RelativeLayout):
 
     PortDebounce = 1000
 
-    def __init__(self, type, name, **kwargs):
+    def __init__(self, type, name, triggerLevel, **kwargs):
         Builder.load_string(KV)
         super().__init__(**kwargs)
         config = Config.config()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.type = type
+        self.triggerLevel = triggerLevel
         self.sensorPort = config.getint('core', self.type + 'SensorPort')
         self.sensorTriggered = False
         self.blinkOn = True
@@ -54,7 +55,7 @@ class SimpleSensor(RelativeLayout):
         
         def cb(dt):
             self.background_text = name
-            if pi.read(self.sensorPort) == pigpio.HIGH:
+            if pi.read(self.sensorPort) == self.triggerLevel:
                 self.sensorTriggered = True
                 self.sensorTriggeredTimer()
                 
@@ -65,13 +66,13 @@ class SimpleSensor(RelativeLayout):
     def setupGPIO(self):
         
         def cb(port, level, tick):
-            self.sensorTriggered = level == 1
+            self.sensorTriggered = level == self.triggerLevel
             
-            if level == 1:
+            if level == self.triggerLevel:
                 self.sensorTriggeredTimer.cancel()
                 self.sensorTriggeredTimer()
                 
-            elif level == 0:
+            else:
                 self.sensorTriggeredTimer.cancel()
                 if self.blinkTimer.is_triggered:
                     self.stop_alert()
