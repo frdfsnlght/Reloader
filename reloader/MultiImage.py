@@ -13,7 +13,6 @@ KV = '''
         allow_stretch: True
         center: self.parent.center
         width: self.parent.width - (self.parent.padding_x * 2)
-        height: self.parent.height - (self.parent.padding_y * 2)
 '''
 
 class MultiImage(Label):    # inherit from label because it had 'padding'

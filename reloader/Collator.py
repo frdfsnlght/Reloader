@@ -26,8 +26,23 @@ KV = '''
     sensorImage: 0
     background_text: 'Change me'
     
+#    canvas.after:
+#        Color:
+#            rgba: 1, 0, 0, 1
+#        Line:
+#            width: 1
+#            rectangle: self.x, self.y, self.width - 1, self.height - 1
+
+            
     BackgroundLabel:
         text: self.parent.background_text
+
+#        canvas.after:
+#            Color:
+#                rgba: 0, 1, 0, 1
+#            Line:
+#                width: 1
+#                rectangle: self.x, self.y, self.width - 1, self.height - 1
         
     BoxLayout:
         orientation: 'horizontal'
@@ -38,12 +53,27 @@ KV = '''
             font_size: self.height * 0.9
             halign: 'right'
             max_lines: 1
-#            padding_y: self.height * 0.15
             on_long_press: self.parent.parent.on_count_long_press()
+            
+#            canvas.after:
+#                Color:
+#                    rgba: 0, 0, 1, 1
+#                Line:
+#                    width: 1
+#                    rectangle: self.x, self.y, self.width - 1, self.height - 1
+            
         GridLayout:
             cols: 2
             size_hint_x: None
             width: self.parent.height
+            
+#            canvas.after:
+#                Color:
+#                    rgba: 0, 1, 1, 1
+#                Line:
+#                    width: 1
+#                    rectangle: self.x, self.y, self.width - 1, self.height - 1
+            
             MultiImageButton:
                 images_normal: 'play_normal.png', 'pause_normal.png'
                 images_down: 'play_down.png', 'pause_down.png'
