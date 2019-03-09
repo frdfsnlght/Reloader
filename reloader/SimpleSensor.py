@@ -17,7 +17,7 @@ KV = '''
     
     BackgroundLabel:
         text: self.parent.background_text
-        font_size: self.height * 0.45
+        font_size: self.height * 0.4
         halign: 'center'
         
     BoxLayout:

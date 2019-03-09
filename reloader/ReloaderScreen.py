@@ -25,25 +25,25 @@ KV = '''
         size_hint_y: None
     Divider:
     Timer:
-        height: '100sp'
+        height: '110sp'
         size_hint_y: None
     OutputRate:
-        height: '120sp'
+        height: '130sp'
         size_hint_y: None
     CaseCollator:
-        height: '120sp'
+        height: '130sp'
         size_hint_y: None
     BulletCollator:
-        height: '120sp'
+        height: '130sp'
         size_hint_y: None
     GridLayout:
         cols: 2
-        height: '70sp'
-        size_hint_y: None
+#        height: '80sp'
+#        size_hint_y: None
         PrimerSensor:
         PowderSensor:
     OutputCounter:
-        height: '120sp'
+        height: '130sp'
         size_hint_y: None
     
 '''

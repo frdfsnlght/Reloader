@@ -10,7 +10,7 @@ KV = '''
     halign: 'left'
     valign: 'middle'
     max_lines: 1
-    color: 0.2, 0.2, 0.2, 1
+    color: 0.1, 0.1, 0.1, 1
     padding_y: self.height * 0.15
     padding_x: '20sp'
 '''
