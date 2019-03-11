@@ -1,6 +1,14 @@
 # Reloader
 Python application for a Raspberry Pi computer for my reloading press.
 
+## Sensors
+
+* Case collator: NC
+* Bullet collator: NC
+* Primer: NO
+* Powder: NO
+* Output: NO
+
 ## TODO
 
 * Save/load sessions?
