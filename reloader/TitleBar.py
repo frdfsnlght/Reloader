@@ -2,7 +2,9 @@
 from kivy.lang.builder import Builder
 from kivy.uix.boxlayout import BoxLayout
 
+from .bus import bus
 from .ImageButton import ImageButton
+from .ConfirmDialog import ConfirmDialog
 from .PowerDialog import PowerDialog
 
 
@@ -28,6 +30,12 @@ KV = '''
         color: 0.9, 0.9, 0.9, 1
         padding_y: self.height * 0.15
     ImageButton:
+        image_normal: 'reset_normal.png'
+        image_down: 'reset_down.png'
+        size_hint_x: None
+        width: self.height
+        on_press: self.parent.on_press_reset()
+    ImageButton:
         image_normal: 'power_normal.png'
         image_down: 'power_down.png'
         size_hint_x: None
@@ -40,8 +48,20 @@ class TitleBar(BoxLayout):
     def __init__(self, **kwargs):
         Builder.load_string(KV)
         super().__init__(**kwargs)
+        self.resetConfirmDialog = None
         self.powerDialog = None
 
+    def on_press_reset(self):
+        if not self.resetConfirmDialog:
+            self.resetConfirmDialog = ConfirmDialog()
+            self.resetConfirmDialog.text = 'Are you sure you want to reset everything?'
+            self.resetConfirmDialog.bind(on_dismiss = self.on_dismiss_reset)
+        self.resetConfirmDialog.open()
+    
+    def on_dismiss_reset(self, inst):
+        if inst.confirmed:
+            bus.emit('reset')
+            
     def on_press_power(self):
         if not self.powerDialog:
             self.powerDialog = PowerDialog()

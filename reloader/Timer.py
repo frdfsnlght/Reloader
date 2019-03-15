@@ -5,10 +5,11 @@ from kivy.lang.builder import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock, mainthread
 
-from reloader.bus import bus
-from reloader.MultiImageButton import MultiImageButton
-from reloader.ImageButton import ImageButton
-from reloader.ConfirmDialog import ConfirmDialog
+from .bus import bus
+from .Settings import Settings
+from .MultiImageButton import MultiImageButton
+from .ImageButton import ImageButton
+from .ConfirmDialog import ConfirmDialog
 
 
 KV = '''
@@ -47,12 +48,13 @@ class Timer(BoxLayout):
         super().__init__(**kwargs)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.running = False
-        self.time = 0
+        self.time = Settings.settings().getfloat('session', 'timer', fallback = 0)
         self.resetConfirmDialog = None
         
         self.event = Clock.schedule_interval(self.on_tick, 0.2)
         
         bus.add_event(self.on_outputCounter_count, 'outputCounter/count')
+        bus.add_event(self.reset, 'reset')
         
         self.update()
         bus.emit('timer/time', self.time)
@@ -62,6 +64,7 @@ class Timer(BoxLayout):
         self.time = self.time + delta
         self.update()
         bus.emit('timer/time', self.time)
+        Settings.settings().safe_set('session', 'timer', self.time)
         
     def on_press_playPause(self):
         self.running = not self.running
@@ -79,15 +82,18 @@ class Timer(BoxLayout):
     
     def on_dismiss_reset(self, inst):
         if inst.confirmed:
-            self.running = False
-            self.time = 0
-            self.update()
-            bus.emit('timer/time', self.time)
+            self.reset()
     
     def on_outputCounter_count(self, count, manual):
         if not manual and not self.running:
             self.running = True
             self.update()
+    
+    def reset(self):
+        self.running = False
+        self.time = 0
+        self.update()
+        bus.emit('timer/time', self.time)
     
     @mainthread
     def update(self):

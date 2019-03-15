@@ -5,12 +5,13 @@ from kivy.lang.builder import Builder
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.clock import mainthread
 
-from reloader.bus import bus
-from reloader.gpio import pi
-from reloader.Config import Config
-from reloader.BackgroundLabel import BackgroundLabel
-from reloader.ImageButton import ImageButton
-from reloader.ConfirmDialog import ConfirmDialog
+from .bus import bus
+from .gpio import pi
+from .Config import Config
+from .Settings import Settings
+from .BackgroundLabel import BackgroundLabel
+from .ImageButton import ImageButton
+from .ConfirmDialog import ConfirmDialog
 
 
 KV = '''
@@ -68,10 +69,13 @@ class OutputCounter(RelativeLayout):
         Builder.load_string(KV)
         super().__init__(**kwargs)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.count = 0
+        self.count = Settings.settings().getint('session', 'outputCount', fallback = 0)
         self.running = True
         self.sensorTriggered = False
         self.resetConfirmDialog = None
+        
+        bus.add_event(self.reset, 'reset')
+        
         self.update()
         self.startGPIO()
         bus.emit('outputCounter/count', self.count, True)
@@ -83,9 +87,9 @@ class OutputCounter(RelativeLayout):
         def cb(port, level, tick):
             self.sensorTriggered = level == 1
             if level == 0 and self.running == True:
-                self.count = (self.count + 1) % self.MaxCount
-                bus.emit('outputCounter/count', self.count, False)
-            self.update()
+                self.change_count(1, False)
+            else:
+                self.update()
             
         pi.set_mode(port, pigpio.INPUT)
         pi.set_pull_up_down(port, pigpio.PUD_UP)
@@ -99,26 +103,26 @@ class OutputCounter(RelativeLayout):
         self.update()
         
     def on_press_plus(self):
-        self.change_count(1)
+        self.change_count(1, True)
 
     def on_long_press_plus(self, inst, count):
         delta = 1 if count < 10 else 10 if count < 20 else 100
-        self.change_count(delta)
+        self.change_count(delta, True)
     
     def on_press_minus(self):
-        self.change_count(-1)
+        self.change_count(-1, True)
         
     def on_long_press_minus(self, inst, count):
         delta = -1 if count < 10 else -10 if count < 20 else -100
-        self.change_count(delta)
+        self.change_count(delta, True)
 
-    def change_count(self, delta):
+    def change_count(self, delta, manual):
         self.count = min(max(self.count + delta, 0), self.MaxCount)
         self.update()
-        bus.emit('outputCounter/count', self.count, True)
+        bus.emit('outputCounter/count', self.count, manual)
+        Settings.settings().safe_set('session', 'outputCount', self.count)
     
     def on_count_long_press(self):
-#    def on_press_reset(self):
         if self.count == 0: return
         if not self.resetConfirmDialog:
             self.resetConfirmDialog = ConfirmDialog()
@@ -128,9 +132,10 @@ class OutputCounter(RelativeLayout):
     
     def on_dismiss_reset(self, inst):
         if inst.confirmed:
-            self.count = 0
-            self.update()
-            bus.emit('outputCounter/count', self.count, True)
+            self.reset()
+            
+    def reset(self):
+        self.change_count(-self.count, True)
     
     @mainthread
     def update(self):

@@ -3,9 +3,11 @@ import os, logging
 
 from kivy.app import App
 from kivy.resources import resource_add_path
+from kivy.clock import Clock
 
-from reloader.Config import Config
-from reloader.ReloaderScreen import ReloaderScreen
+from .Config import Config
+from .Settings import Settings
+from .ReloaderScreen import ReloaderScreen
 
 
 class ReloaderApp(App):
@@ -21,11 +23,13 @@ class ReloaderApp(App):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.saveEvent = None
         self.logger.info('Application initialized')
 
     def build(self):
         resource_add_path(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources'))
         screen = ReloaderScreen.screen()
+        self.saveEvent = Clock.schedule_interval(Settings.settings().save, Config.config().getfloat('core', 'settingsSaveInterval'))
         return screen
 
 

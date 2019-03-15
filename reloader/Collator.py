@@ -111,7 +111,8 @@ class Collator(RelativeLayout):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.type = type
         self.running = False
-        self.count = 0
+        self.count = Settings.settings().getint('session', self.type + 'Count', fallback = 0)
+        
         self.sensorTriggered = False
         self.blinkOn = True
         self.emptyTimeout = config.getfloat('core', self.type + 'CollatorEmptyTimeout')
@@ -128,6 +129,8 @@ class Collator(RelativeLayout):
         self.outputFullTimer = Clock.create_trigger(self.on_outputFull, 0.5)
         self.blinkTimer = Clock.schedule_interval(self.on_blink, 0.25)
         self.blinkTimer.cancel()
+        
+        bus.add_event(self.reset, 'reset')
         
         def cb(dt):
             self.background_text = self.type.capitalize() + 's'
@@ -150,10 +153,9 @@ class Collator(RelativeLayout):
             self.collatorEmptyTimer()
             
             if level == 1:
-                self.count = (self.count + 1) % self.MaxCount
                 self.outputFullTimer.cancel()
                 self.outputFullTimer()
-                bus.emit(self.type + 'Collator/count', self.count, False)
+                self.change_count(1)
                 
             elif level == 0:
                 self.outputFullTimer.cancel()
@@ -238,10 +240,7 @@ class Collator(RelativeLayout):
 
     def on_dismiss_motorSpeed(self, inst):
         settings = Settings.settings()
-        if not settings.has_section('collators'):
-            settings.add_section('collators')
-        settings.set('collators', self.type + 'MotorSpeed', str(self.motorDutycycle))
-        settings.save()
+        settings.safe_set('collators', self.type + 'MotorSpeed', self.motorDutycycle)
             
     def on_press_plus(self):
         self.change_count(1)
@@ -262,6 +261,7 @@ class Collator(RelativeLayout):
         self.stop_alert()
         self.update()
         bus.emit(self.type + 'Collator/count', self.count, True)
+        Settings.settings().safe_set('session', self.type + 'Count', self.count)
     
     def on_count_long_press(self):
         self.stop_alert()
@@ -274,10 +274,11 @@ class Collator(RelativeLayout):
     
     def on_dismiss_reset(self, inst):
         if inst.confirmed:
-            self.count = 0
-            self.update()
-            bus.emit('outputCounter/count', self.count, True)
+            self.reset()
 
+    def reset(self):
+        self.change_count(-self.count)
+    
     @mainthread
     def update(self):
         self.playPauseImage = 1 if self.running else 0
