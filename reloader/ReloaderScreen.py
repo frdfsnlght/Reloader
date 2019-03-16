@@ -62,7 +62,6 @@ class ReloaderScreen(GridLayout):
         Builder.load_string(KV)
         super().__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.alertDialog = None
 
         self.alerts = []
         
@@ -74,6 +73,8 @@ class ReloaderScreen(GridLayout):
         bus.add_event(self.on_primer_clear, 'primerSensor/clear')
         bus.add_event(self.on_powder_set, 'powderSensor/set')
         bus.add_event(self.on_powder_clear, 'powderSensor/clear')
+        
+        bus.add_event(self.hideAlerts, 'reset')
         
         
     def on_caseCollator_empty(self):
@@ -115,13 +116,14 @@ class ReloaderScreen(GridLayout):
             self.hideAlerts()
 
     def showAlerts(self):
-        if not self.alertDialog:
-            self.alertDialog = AlertDialog()
-        self.alertDialog.alerts = '\n'.join(self.alerts)
-        if not self.alertDialog.isOpen:
-            self.alertDialog.open()
+        alertDialog = AlertDialog.instance()
+        alertDialog.alerts = '\n'.join(self.alerts)
+        if not alertDialog.isOpen:
+            alertDialog.open()
     
     def hideAlerts(self):
-        if self.alertDialog and self.alertDialog.isOpen:
-            self.alertDialog.dismiss()
+        self.alerts = []
+        alertDialog = AlertDialog.instance()
+        if alertDialog.isOpen:
+            alertDialog.dismiss()
         

@@ -48,21 +48,18 @@ class TitleBar(BoxLayout):
     def __init__(self, **kwargs):
         Builder.load_string(KV)
         super().__init__(**kwargs)
-        self.resetConfirmDialog = None
-        self.powerDialog = None
 
     def on_press_reset(self):
-        if not self.resetConfirmDialog:
-            self.resetConfirmDialog = ConfirmDialog()
-            self.resetConfirmDialog.text = 'Are you sure you want to reset everything?'
-            self.resetConfirmDialog.bind(on_dismiss = self.on_dismiss_reset)
-        self.resetConfirmDialog.open()
+        dlg = ConfirmDialog.instance()
+        dlg.text = 'Are you sure you want to reset everything?'
+        dlg.bind(on_dismiss = self.on_dismiss_reset)
+        dlg.open()
     
-    def on_dismiss_reset(self, inst):
-        if inst.confirmed:
+    def on_dismiss_reset(self, dlg):
+        dlg.unbind(on_dismiss = self.on_dismiss_reset)
+        if dlg.confirmed:
             bus.emit('reset')
             
     def on_press_power(self):
-        if not self.powerDialog:
-            self.powerDialog = PowerDialog()
-        self.powerDialog.open()
+        dlg = PowerDialog.instance()
+        dlg.open()

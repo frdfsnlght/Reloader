@@ -40,6 +40,14 @@ KV = '''
 
 class ConfirmDialog(ModalView):
 
+    _instance = None
+    
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = ConfirmDialog()
+        return cls._instance
+        
     def __init__(self, **kwargs):
         Builder.load_string(KV)
         super().__init__(**kwargs)

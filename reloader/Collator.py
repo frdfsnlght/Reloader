@@ -120,8 +120,6 @@ class Collator(RelativeLayout):
         self.motorPort = config.getint('core', self.type + 'MotorPort')
         self.motorFrequency = config.getint('core', self.type + 'MotorFrequency')
         self.motorDutycycle = settings.getint('collators', self.type + 'MotorSpeed', fallback = 100)
-        self.resetConfirmDialog = None
-        self.motorSpeedDialog = None
         
         self.setupGPIO()
 
@@ -225,20 +223,21 @@ class Collator(RelativeLayout):
         
     def on_long_press_playPause(self):
         self.stop_alert()
-        if not self.motorSpeedDialog:
-            self.motorSpeedDialog = MotorSpeedDialog()
-            self.motorSpeedDialog.title = self.type.capitalize() + ' Motor'
-            self.motorSpeedDialog.slider.bind(value = self.on_change_motorSpeed)
-            self.motorSpeedDialog.bind(on_dismiss = self.on_dismiss_motorSpeed)
-        self.motorSpeedDialog.slider.value = self.motorDutycycle
-        self.motorSpeedDialog.open()
+        dlg = MotorSpeedDialog.instance()
+        dlg.title = self.type.capitalize() + ' Motor'
+        dlg.slider.bind(value = self.on_change_motorSpeed)
+        dlg.bind(on_dismiss = self.on_dismiss_motorSpeed)
+        dlg.slider.value = self.motorDutycycle
+        dlg.open()
 
-    def on_change_motorSpeed(self, inst, value):
+    def on_change_motorSpeed(self, dlg, value):
         self.motorDutycycle = int(value)
         if self.running:
             pi.set_PWM_dutycycle(self.motorPort, self.motorDutycycle)
 
-    def on_dismiss_motorSpeed(self, inst):
+    def on_dismiss_motorSpeed(self, dlg):
+        dlg.slider.unbind(value = self.on_change_motorSpeed)
+        dlg.unbind(on_dismiss = self.on_dismiss_motorSpeed)
         settings = Settings.settings()
         settings.safe_set('collators', self.type + 'MotorSpeed', self.motorDutycycle)
             
@@ -266,14 +265,14 @@ class Collator(RelativeLayout):
     def on_count_long_press(self):
         self.stop_alert()
         if self.count == 0: return
-        if not self.resetConfirmDialog:
-            self.resetConfirmDialog = ConfirmDialog()
-            self.resetConfirmDialog.text = 'Are you sure you want to reset the count?'
-            self.resetConfirmDialog.bind(on_dismiss = self.on_dismiss_reset)
-        self.resetConfirmDialog.open()
+        dlg = ConfirmDialog.instance()
+        dlg.text = 'Are you sure you want to reset the count?'
+        dlg.bind(on_dismiss = self.on_dismiss_reset)
+        dlg.open()
     
-    def on_dismiss_reset(self, inst):
-        if inst.confirmed:
+    def on_dismiss_reset(self, dlg):
+        dlg.unbind(on_dismiss = self.on_dismiss_reset)
+        if dlg.confirmed:
             self.reset()
 
     def reset(self):

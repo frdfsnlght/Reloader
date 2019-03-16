@@ -49,7 +49,6 @@ class Timer(BoxLayout):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.running = False
         self.time = Settings.settings().getfloat('session', 'timer', fallback = 0)
-        self.resetConfirmDialog = None
         
         self.event = Clock.schedule_interval(self.on_tick, 0.2)
         
@@ -74,14 +73,14 @@ class Timer(BoxLayout):
     
     def on_time_long_press(self):
         if self.time == 0: return
-        if not self.resetConfirmDialog:
-            self.resetConfirmDialog = ConfirmDialog()
-            self.resetConfirmDialog.text = 'Are you sure you want to reset the timer?'
-            self.resetConfirmDialog.bind(on_dismiss = self.on_dismiss_reset)
-        self.resetConfirmDialog.open()
+        dlg = ConfirmDialog.instance()
+        dlg.text = 'Are you sure you want to reset the timer?'
+        dlg.bind(on_dismiss = self.on_dismiss_reset)
+        dlg.open()
     
-    def on_dismiss_reset(self, inst):
-        if inst.confirmed:
+    def on_dismiss_reset(self, dlg):
+        dlg.unbind(on_dismiss = self.on_dismiss_reset)
+        if dlg.confirmed:
             self.reset()
     
     def on_outputCounter_count(self, count, manual):

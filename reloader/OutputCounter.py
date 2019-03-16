@@ -72,7 +72,6 @@ class OutputCounter(RelativeLayout):
         self.count = Settings.settings().getint('session', 'outputCount', fallback = 0)
         self.running = True
         self.sensorTriggered = False
-        self.resetConfirmDialog = None
         
         bus.add_event(self.reset, 'reset')
         
@@ -124,14 +123,14 @@ class OutputCounter(RelativeLayout):
     
     def on_count_long_press(self):
         if self.count == 0: return
-        if not self.resetConfirmDialog:
-            self.resetConfirmDialog = ConfirmDialog()
-            self.resetConfirmDialog.text = 'Are you sure you want to reset the count?'
-            self.resetConfirmDialog.bind(on_dismiss = self.on_dismiss_reset)
-        self.resetConfirmDialog.open()
+        dlg = ConfirmDialog.instance()
+        dlg.text = 'Are you sure you want to reset the count?'
+        dlg.bind(on_dismiss = self.on_dismiss_reset)
+        dlg.open()
     
-    def on_dismiss_reset(self, inst):
-        if inst.confirmed:
+    def on_dismiss_reset(self, dlg):
+        dlg.unbind(on_dismiss = self.on_dismiss_reset)
+        if dlg.confirmed:
             self.reset()
             
     def reset(self):

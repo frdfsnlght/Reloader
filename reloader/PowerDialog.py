@@ -26,13 +26,21 @@ KV = '''
             text: 'Restart'
             font_size: '20sp'
             on_press: self.parent.parent.on_press_restart()
-        Button:
-            text: 'Restart X'
-            font_size: '20sp'
-            on_press: self.parent.parent.on_press_restartX()
+#        Button:
+#            text: 'Restart X'
+#            font_size: '20sp'
+#            on_press: self.parent.parent.on_press_restartX()
 '''
 
 class PowerDialog(ModalView):
+
+    _instance = None
+    
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = PowerDialog()
+        return cls._instance
 
     def __init__(self, **kwargs):
         Builder.load_string(KV)
@@ -53,9 +61,9 @@ class PowerDialog(ModalView):
         config = Config.config()
         self.run_command(config.get('commands', 'restart'))
     
-    def on_press_restartX(self):
-        config = Config.config()
-        self.run_command(config.get('commands', 'restartX'))
+#    def on_press_restartX(self):
+#        config = Config.config()
+#        self.run_command(config.get('commands', 'restartX'))
 
     def run_command(self, cmd):
         cmd = cmd.split(' ')

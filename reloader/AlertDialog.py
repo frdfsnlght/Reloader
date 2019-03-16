@@ -5,6 +5,7 @@ from kivy.lang.builder import Builder
 from kivy.clock import Clock
 from kivy.uix.popup import Popup
 
+from .bus import bus
 from .gpio import pi
 from .Config import Config
 
@@ -44,6 +45,14 @@ KV = '''
 class AlertDialog(Popup):
 
     DutyCycle = 50
+
+    _instance = None
+    
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = AlertDialog()
+        return cls._instance
     
     def __init__(self, **kwargs):
         Builder.load_string(KV)
@@ -56,6 +65,8 @@ class AlertDialog(Popup):
         self.buzzerIntervalTimer.cancel()
         self.buzzerFrequency = 0
         self.isOpen = False
+        bus.add_event(self.on_dismiss, 'reset')
+        bus.add_event(self.on_dismiss, 'app/start')
         self.setupGPIO()
         
     def setupGPIO(self):
