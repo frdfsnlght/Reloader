@@ -129,6 +129,8 @@ class Collator(RelativeLayout):
         self.blinkTimer.cancel()
         
         bus.add_event(self.reset, 'reset')
+        bus.add_event(self.stop_motor, 'power/restart')
+        bus.add_event(self.stop_motor, 'power/shutdown')
         
         def cb(dt):
             self.background_text = self.type.capitalize() + 's'

@@ -5,6 +5,7 @@ from kivy.lang.builder import Builder
 #from kivy.uix.popup import Popup
 from kivy.uix.modalview import ModalView
 
+from .bus import bus
 from .Config import Config
 
 
@@ -55,10 +56,12 @@ class PowerDialog(ModalView):
 
     def on_press_shutdown(self):
         config = Config.config()
+        bus.emit('power/shutdown')
         self.run_command(config.get('commands', 'shutdown'))
                 
     def on_press_restart(self):
         config = Config.config()
+        bus.emit('power/restart')
         self.run_command(config.get('commands', 'restart'))
     
 #    def on_press_restartX(self):
