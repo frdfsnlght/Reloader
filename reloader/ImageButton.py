@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.clock import Clock
 
 
-KV = '''
+Builder.load_string('''
 <ImageButton>:
     image_normal: ''
     image_down: ''
@@ -30,7 +30,7 @@ KV = '''
         allow_stretch: True
         center: self.parent.center_x - ((self.parent.width - (self.parent.padding_x * 2)) / 2), self.parent.center_y
         width: (self.parent.width - (self.parent.padding_x * 2)) if self.parent.state == 'down' else 0
-'''
+''')
 
 # Is this a bug? Notice the 'center' property of the second image. Why is the parent's center shifted in the down state?
 
@@ -40,7 +40,6 @@ class ImageButton(Button):
     long_press_interval = NumericProperty(0.2)
     
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
         self.register_event_type('on_long_press')
         self.longPressTimer = Clock.create_trigger(self._on_long_press, self.long_press_delay)

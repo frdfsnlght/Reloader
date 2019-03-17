@@ -3,7 +3,7 @@ from kivy.lang.builder import Builder
 from kivy.uix.label import Label
 
 
-KV = '''
+Builder.load_string('''
 <Divider>:
     height: '1sp'
     size_hint_y: None
@@ -14,12 +14,11 @@ KV = '''
         Rectangle:
             pos: self.pos
             size: self.size
-'''
+''')
 
 
 class Divider(Label):
 
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
         

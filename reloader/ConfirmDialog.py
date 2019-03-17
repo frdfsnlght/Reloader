@@ -3,7 +3,7 @@ from kivy.lang.builder import Builder
 from kivy.uix.modalview import ModalView
 
 
-KV = '''
+Builder.load_string('''
 <ConfirmDialog>:
     auto_dismiss: False
     text: ''
@@ -36,30 +36,23 @@ KV = '''
                 text: self.parent.parent.parent.cancel_text
                 on_press: self.parent.parent.parent.on_press_cancel()
             Label:
-'''
+''')
 
 class ConfirmDialog(ModalView):
 
-    _instance = None
-    
-    @classmethod
-    def instance(cls):
-        if cls._instance is None:
-            cls._instance = ConfirmDialog()
-        return cls._instance
-        
-    def __init__(self, **kwargs):
-        Builder.load_string(KV)
+    def __init__(self, text, on_confirm, on_cancel = None, **kwargs):
         super().__init__(**kwargs)
-        self.confirmed = False
-        self.canceled = False
+        self.text = text
+        self._on_confirm = on_confirm
+        self._on_cancel = on_cancel
+        self.open()
 
     def on_press_confirm(self):
-        self.confirmed = True
-        self.canceled = False
         self.dismiss()
+        if self._on_confirm:
+            self._on_confirm(self)
             
     def on_press_cancel(self):
-        self.confirmed = False
-        self.canceled = True
         self.dismiss()
+        if self._on_cancel:
+            self._on_cancel(self)

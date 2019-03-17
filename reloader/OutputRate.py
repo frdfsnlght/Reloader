@@ -5,10 +5,10 @@ from kivy.lang.builder import Builder
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.clock import mainthread
 
-from reloader.bus import bus
+from .bus import bus
 
 
-KV = '''
+Builder.load_string('''
 <OutputRate>:
     rateStr: ''
     
@@ -25,28 +25,25 @@ KV = '''
             halign: 'right'
             max_lines: 1
 #            padding_y: self.height * 0.15
-'''
+''')
 
 class OutputRate(RelativeLayout):
 
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.time = 0
-        self.count = 10
+        self.count = 0
         
         bus.add_event(self.on_timer_time, 'timer/time')
         bus.add_event(self.on_outputCounter_count, 'outputCounter/count')
         
         self.update()
 
-    #@bus.on('timer/time')
     def on_timer_time(self, time = 0):
         self.time = time
         self.update()
         
-    #@bus.on('outputCounter/count')
     def on_outputCounter_count(self, count, manual):
         self.count = count
         self.update()

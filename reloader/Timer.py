@@ -12,7 +12,7 @@ from .ImageButton import ImageButton
 from .ConfirmDialog import ConfirmDialog
 
 
-KV = '''
+Builder.load_string('''
 <Timer>:
     timeStr: ''
     running: False
@@ -38,22 +38,22 @@ KV = '''
             image_set: self.parent.parent.playPauseImage
             on_press: self.parent.parent.on_press_playPause()
             on_release: self.parent.parent.on_release_playPause()
-'''
+''')
 
-        
+    
 class Timer(BoxLayout):
 
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
         self.logger = logging.getLogger(self.__class__.__name__)
+        
         self.running = False
         self.time = Settings.settings().getfloat('session', 'timer', fallback = 0)
         
-        self.event = Clock.schedule_interval(self.on_tick, 0.2)
-        
         bus.add_event(self.on_outputCounter_count, 'outputCounter/count')
         bus.add_event(self.reset, 'reset')
+        
+        self.event = Clock.schedule_interval(self.on_tick, 0.2)
         
         self.update()
         bus.emit('timer/time', self.time)
@@ -73,26 +73,19 @@ class Timer(BoxLayout):
     
     def on_time_long_press(self):
         if self.time == 0: return
-        dlg = ConfirmDialog.instance()
-        dlg.text = 'Are you sure you want to reset the timer?'
-        dlg.bind(on_dismiss = self.on_dismiss_reset)
-        dlg.open()
-    
-    def on_dismiss_reset(self, dlg):
-        dlg.unbind(on_dismiss = self.on_dismiss_reset)
-        if dlg.confirmed:
-            self.reset()
+        ConfirmDialog(text = 'Are you sure you want to reset the timer?', on_confirm = self.reset)
     
     def on_outputCounter_count(self, count, manual):
         if not manual and not self.running:
             self.running = True
             self.update()
     
-    def reset(self):
+    def reset(self, *args):
         self.running = False
         self.time = 0
         self.update()
         bus.emit('timer/time', self.time)
+        Settings.settings().safe_set('session', 'timer', self.time)
     
     @mainthread
     def update(self):

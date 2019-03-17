@@ -9,7 +9,7 @@ from .bus import bus
 from .Config import Config
 
 
-KV = '''
+Builder.load_string('''
 <PowerDialog>:
 #    title: 'Power'
 #    title_size: '20sp'
@@ -31,35 +31,22 @@ KV = '''
 #            text: 'Restart X'
 #            font_size: '20sp'
 #            on_press: self.parent.parent.on_press_restartX()
-'''
+''')
 
 class PowerDialog(ModalView):
 
-    _instance = None
-    
-    @classmethod
-    def instance(cls):
-        if cls._instance is None:
-            cls._instance = PowerDialog()
-        return cls._instance
-
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
-        self.isOpen = False
+        self.open()
         
-    def on_open(self):
-        self.isOpen = True
-        
-    def on_dismiss(self):
-        self.isOpen = False
-
     def on_press_shutdown(self):
+        self.dismiss()
         config = Config.config()
         bus.emit('power/shutdown')
         self.run_command(config.get('commands', 'shutdown'))
                 
     def on_press_restart(self):
+        self.dismiss()
         config = Config.config()
         bus.emit('power/restart')
         self.run_command(config.get('commands', 'restart'))

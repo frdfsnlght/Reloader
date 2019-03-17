@@ -17,7 +17,7 @@ from .PowderSensor import PowderSensor
 from .AlertDialog import AlertDialog
 
 
-KV = '''
+Builder.load_string('''
 <ReloaderScreen>:
     cols: 1
     TitleBar:
@@ -46,7 +46,7 @@ KV = '''
         height: '130sp'
         size_hint_y: None
     
-'''
+''')
 
 class ReloaderScreen(GridLayout):
 
@@ -59,7 +59,6 @@ class ReloaderScreen(GridLayout):
         return cls._screen
         
     def __init__(self):
-        Builder.load_string(KV)
         super().__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -118,12 +117,9 @@ class ReloaderScreen(GridLayout):
     def showAlerts(self):
         alertDialog = AlertDialog.instance()
         alertDialog.alerts = '\n'.join(self.alerts)
-        if not alertDialog.isOpen:
-            alertDialog.open()
     
     def hideAlerts(self):
         self.alerts = []
-        alertDialog = AlertDialog.instance()
-        if alertDialog.isOpen:
-            alertDialog.dismiss()
+        if AlertDialog._instance:
+            AlertDialog._instance.dismiss()
         

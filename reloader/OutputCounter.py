@@ -14,7 +14,7 @@ from .ImageButton import ImageButton
 from .ConfirmDialog import ConfirmDialog
 
 
-KV = '''
+Builder.load_string('''
 <OutputCounter>:
     countStr: ''
     playPauseImage: 0
@@ -57,31 +57,34 @@ KV = '''
                 image_down: 'minus_down.png'
                 on_press: self.parent.parent.parent.on_press_minus()
                 on_long_press: self.parent.parent.parent.on_long_press_minus(*args)
-'''
+''')
 
-        
+    
 class OutputCounter(RelativeLayout):
 
     MaxCount = 9999
     PortDebounce = 1000
     
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
+        config = Config.config()
+        settings = Settings.settings()
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.count = Settings.settings().getint('session', 'outputCount', fallback = 0)
+
+        self.sensorPort = config.getint('core', 'outputCounterPort')
+        
+        self.setupGPIO()
+
         self.running = True
-        self.sensorTriggered = False
+        self.sensorTriggered = pi.read(self.sensorPort) == pigpio.HIGH
+        self.count = settings.getint('session', 'outputCount', fallback = 0)
         
         bus.add_event(self.reset, 'reset')
         
         self.update()
-        self.startGPIO()
         bus.emit('outputCounter/count', self.count, True)
         
-    def startGPIO(self):
-        config = Config.config()
-        port = config.getint('core', 'outputCounterPort')
+    def setupGPIO(self):
         
         def cb(port, level, tick):
             self.sensorTriggered = level == 1
@@ -90,10 +93,10 @@ class OutputCounter(RelativeLayout):
             else:
                 self.update()
             
-        pi.set_mode(port, pigpio.INPUT)
-        pi.set_pull_up_down(port, pigpio.PUD_UP)
-        pi.set_glitch_filter(port, self.PortDebounce)
-        self.cb = pi.callback(port, pigpio.EITHER_EDGE, cb)
+        pi.set_mode(self.sensorPort, pigpio.INPUT)
+        pi.set_pull_up_down(self.sensorPort, pigpio.PUD_UP)
+        pi.set_glitch_filter(self.sensorPort, self.PortDebounce)
+        self.cb = pi.callback(self.sensorPort, pigpio.EITHER_EDGE, cb)
 
     def on_press_playPause(self):
         self.running = not self.running
@@ -123,18 +126,15 @@ class OutputCounter(RelativeLayout):
     
     def on_count_long_press(self):
         if self.count == 0: return
-        dlg = ConfirmDialog.instance()
-        dlg.text = 'Are you sure you want to reset the count?'
-        dlg.bind(on_dismiss = self.on_dismiss_reset)
-        dlg.open()
+        ConfirmDialog(text = 'Are you sure you want to reset the count?', on_confirm = self.reset)
     
-    def on_dismiss_reset(self, dlg):
-        dlg.unbind(on_dismiss = self.on_dismiss_reset)
-        if dlg.confirmed:
-            self.reset()
-            
-    def reset(self):
-        self.change_count(-self.count, True)
+    def reset(self, *args):
+        self.running = True
+        self.sensorTriggered = pi.read(self.sensorPort) == pigpio.HIGH
+        self.count = 0
+        self.update()
+        bus.emit('outputCounter/count', self.count, True)
+        Settings.settings().safe_set('session', 'outputCount', self.count)
     
     @mainthread
     def update(self):

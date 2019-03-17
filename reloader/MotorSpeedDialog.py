@@ -4,7 +4,8 @@ from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
 
 
-KV = '''
+
+Builder.load_string('''
 <MotorSpeedDialog>:
     slider: slider
     title_size: '20sp'
@@ -27,20 +28,24 @@ KV = '''
             font_size: self.height
             line_height: 0
             halign: 'center'
-'''
+''')
 
 class MotorSpeedDialog(Popup):
 
-    _instance = None
-    
-    @classmethod
-    def instance(cls):
-        if cls._instance is None:
-            cls._instance = MotorSpeedDialog()
-        return cls._instance
-
     slider = ObjectProperty()
     
-    def __init__(self, **kwargs):
-        Builder.load_string(KV)
+    def __init__(self, title, value, on_value, on_close, **kwargs):
         super().__init__(**kwargs)
+        self.title = title
+        self.slider.value = value
+        self._on_value = on_value
+        self._on_close = on_close
+        self.slider.bind(value = self.on_value_change)
+        self.open()
+
+    def on_dismiss(self):
+        self._on_close()
+        
+    def on_value_change(self, dlg, value):
+        self._on_value(value)
+        

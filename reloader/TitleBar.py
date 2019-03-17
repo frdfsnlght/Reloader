@@ -8,7 +8,7 @@ from .ConfirmDialog import ConfirmDialog
 from .PowerDialog import PowerDialog
 
 
-KV = '''
+Builder.load_string('''
 <TitleBar>:
     orientation: 'horizontal'
     padding: '5sp'
@@ -41,25 +41,18 @@ KV = '''
         size_hint_x: None
         width: self.height
         on_press: self.parent.on_press_power()
-'''
+''')
 
 class TitleBar(BoxLayout):
 
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
 
     def on_press_reset(self):
-        dlg = ConfirmDialog.instance()
-        dlg.text = 'Are you sure you want to reset everything?'
-        dlg.bind(on_dismiss = self.on_dismiss_reset)
-        dlg.open()
+        ConfirmDialog(text = 'Are you sure you want to reset everything?', on_confirm = self.on_reset)
     
-    def on_dismiss_reset(self, dlg):
-        dlg.unbind(on_dismiss = self.on_dismiss_reset)
-        if dlg.confirmed:
-            bus.emit('reset')
+    def on_reset(self, *args):
+        bus.emit('reset')
             
     def on_press_power(self):
-        dlg = PowerDialog.instance()
-        dlg.open()
+        PowerDialog()

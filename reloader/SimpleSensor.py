@@ -10,7 +10,7 @@ from .gpio import pi
 from .Config import Config
 
 
-KV = '''
+Builder.load_string('''
 <SimpleSensor>:
     background_text: 'Change me'
     sensor_image: 0
@@ -29,22 +29,19 @@ KV = '''
             size_hint_x: None
             width: self.height
         Label:
-'''
+''')
 
 class SimpleSensor(RelativeLayout):
 
     PortDebounce = 1000
 
     def __init__(self, type, name, triggerLevel, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
         config = Config.config()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.type = type
         self.triggerLevel = triggerLevel
         self.sensorPort = config.getint('core', self.type + 'SensorPort')
-        self.sensorTriggered = False
-        self.blinkOn = True
         self.sensorTriggeredTimeout = config.getfloat('core', self.type + 'SensorTriggeredTimeout')
         
         self.setupGPIO()
@@ -52,6 +49,10 @@ class SimpleSensor(RelativeLayout):
         self.sensorTriggeredTimer = Clock.create_trigger(self.on_sensorTriggered, self.sensorTriggeredTimeout)
         self.blinkTimer = Clock.schedule_interval(self.on_blink, 0.25)
         self.blinkTimer.cancel()
+        
+        self.reset()
+        
+        bus.add_event(self.reset, 'reset')
         
         def cb(dt):
             self.background_text = name
@@ -61,8 +62,6 @@ class SimpleSensor(RelativeLayout):
                 
         Clock.schedule_once(cb)
         
-        self.update()
-
     def setupGPIO(self):
         
         def cb(port, level, tick):
@@ -102,6 +101,14 @@ class SimpleSensor(RelativeLayout):
         self.blinkOn = not self.blinkOn
         self.update()
         
+    def reset(self):
+        self.sensorTriggeredTimer.cancel()
+        self.blinkTimer.cancel()
+        self.sensorTriggered = False
+        self.blinkOn = True
+        self.stop_alert()
+        self.update()
+    
     @mainthread
     def update(self):
         if self.blinkTimer.is_triggered:

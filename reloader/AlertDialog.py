@@ -10,7 +10,7 @@ from .gpio import pi
 from .Config import Config
 
 
-KV = '''
+Builder.load_string('''
 <AlertDialog>:
     alerts: ''
 
@@ -40,7 +40,7 @@ KV = '''
                 height: '150sp'
                 on_press: self.parent.parent.parent.parent.parent.dismiss()
             Label
-'''
+''')
 
 class AlertDialog(Popup):
 
@@ -55,40 +55,33 @@ class AlertDialog(Popup):
         return cls._instance
     
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
         config = Config.config()
+        self.buzzerFrequency = 0
         self.buzzerPort = config.getint('core', 'buzzerPort')
         self.buzzerFrequencies = [int(f) for f in config.get('core', 'buzzerFrequencies').split(',')]
         self.buzzerInterval = config.getfloat('core', 'buzzerFrequencyInterval')
         self.buzzerIntervalTimer = Clock.schedule_interval(self.on_change_frequency, self.buzzerInterval)
-        self.buzzerIntervalTimer.cancel()
-        self.buzzerFrequency = 0
-        self.isOpen = False
         bus.add_event(self.on_dismiss, 'reset')
         bus.add_event(self.on_dismiss, 'app/start')
-        self.setupGPIO()
         
-    def setupGPIO(self):
         pi.set_mode(self.buzzerPort, pigpio.OUTPUT)
         pi.set_PWM_range(self.buzzerPort, 100)
         pi.set_PWM_dutycycle(self.buzzerPort, 0)
-    
-    def on_open(self):
-        self.buzzerFrequency = 0
-        self.buzzerIntervalTimer()
-        self.setup_buzzer()
-        self.isOpen = True
+        
+        self.buzz()
+        
+        self.open()
         
     def on_dismiss(self):
         pi.set_PWM_dutycycle(self.buzzerPort, 0)
         self.buzzerIntervalTimer.cancel()
-        self.isOpen = False
+        AlertDialog._instance = None
 
     def on_change_frequency(self, dt):
         self.buzzerFrequency = (self.buzzerFrequency + 1) % len(self.buzzerFrequencies)
-        self.setup_buzzer()
+        self.buzz()
         
-    def setup_buzzer(self):
+    def buzz(self):
         pi.set_PWM_frequency(self.buzzerPort, self.buzzerFrequencies[self.buzzerFrequency])
         pi.set_PWM_dutycycle(self.buzzerPort, self.DutyCycle)

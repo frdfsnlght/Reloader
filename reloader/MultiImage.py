@@ -3,7 +3,7 @@ from kivy.lang.builder import Builder
 from kivy.uix.label import Label
 
 
-KV = '''
+Builder.load_string('''
 <MultiImage>:
     images: '', ''
     image_idx: 0
@@ -13,10 +13,9 @@ KV = '''
         allow_stretch: True
         center: self.parent.center
         width: self.parent.width - (self.parent.padding_x * 2)
-'''
+''')
 
-class MultiImage(Label):    # inherit from label because it had 'padding'
+class MultiImage(Label):    # inherit from label because it has 'padding'
 
     def __init__(self, **kwargs):
-        Builder.load_string(KV)
         super().__init__(**kwargs)
