@@ -74,8 +74,8 @@ class AlertDialog(Popup):
         self.open()
         
     def on_dismiss(self):
-        pi.set_PWM_dutycycle(self.buzzerPort, 0)
         self.buzzerIntervalTimer.cancel()
+        pi.set_PWM_dutycycle(self.buzzerPort, 0)
         AlertDialog._instance = None
 
     def on_change_frequency(self, dt):
