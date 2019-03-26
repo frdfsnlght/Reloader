@@ -3,6 +3,7 @@ import logging
 
 from kivy.lang.builder import Builder
 from kivy.uix.gridlayout import GridLayout
+from kivy.clock import mainthread
 
 from .bus import bus
 from .TitleBar import TitleBar
@@ -100,12 +101,14 @@ class ReloaderScreen(GridLayout):
     def on_powder_clear(self):
         self.removeAlert('Powder is empty')
         
+    @mainthread
     def addAlert(self, alert):
         if alert not in self.alerts:
             self.alerts.append(alert)
         if self.alerts:
             self.showAlerts()
             
+    @mainthread
     def removeAlert(self, alert):
         if alert in self.alerts:
             self.alerts.remove(alert)
