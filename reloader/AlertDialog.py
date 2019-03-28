@@ -54,6 +54,10 @@ class AlertDialog(Popup):
             cls._instance = AlertDialog()
         return cls._instance
     
+    @classmethod
+    def isOpen(cls):
+        return True if cls._instance else False
+        
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         config = Config.config()

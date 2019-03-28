@@ -112,10 +112,11 @@ class ReloaderScreen(GridLayout):
     def removeAlert(self, alert):
         if alert in self.alerts:
             self.alerts.remove(alert)
-        if self.alerts:
-            self.showAlerts()
-        else:
+        if not self.alerts:
             self.hideAlerts()
+        elif AlertDialog.isOpen():
+            alertDialog = AlertDialog.instance()
+            alertDialog.alerts = '\n'.join(self.alerts)
 
     def showAlerts(self):
         alertDialog = AlertDialog.instance()
